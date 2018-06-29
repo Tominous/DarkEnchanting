@@ -1,0 +1,7 @@
+name: DarkEnchanting
+author: Yona168
+version: 1.0
+main: monotheistic.mongoose.darkenchanting.Main
+
+commands:
+  de:

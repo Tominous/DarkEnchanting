@@ -1,0 +1,135 @@
+
+#Amount of minutes anyone without the permission to bypass it or that is op has to wait
+#before executing /de summon after doing so
+summon witch cooldown: 5
+#Entities drop blood shards when killed. This
+#section represents options for hostile mobs,
+#non-hostile mobs, and players
+#Keys:
+#enabled: Whether this category of mob should drop blood shards
+#amount: a range of amounts of shards that the category of mob will drop.
+#        NOTE: this MUST be written as "minimum-maximum." If you want it to be one constant,
+#        for example 5, you would write "5-5."
+#chance: The percent chance that this category of mob will drop shards at all
+
+hostile-amount:
+  enabled: true
+  amount: "3-5"
+  chance: 30
+nonhostile-amount:
+  enabled: true
+  amount: "1-3"
+  chance: 20
+player-amount:
+  enabled: true
+  amount: "10-15"
+  chance: 70
+
+#Whenever the enchanting ritual is cast, it must be done with an altar item.
+#This is obtainable by those with the correct permissions by a command,
+#but also buyable in the witch shop.
+#Keys:
+#buyable: If it is buyable in the witch shop
+#price: if buyable is true, how many blood shards it takes to buy one
+#uses: amount of uses it will have before it breaks.
+altar-item:
+  buyable: true
+  price: 50
+  uses: 10
+
+#Each enchantment can be bought as a book to be used in the enchanting ritual
+#Each enchantment has an "amt" key, which is the amount of blood shards one
+#will cost, and an "enabled" key, which should be either "true" or "false",
+#that represents if the enchantment should be included in the shop at all or not.
+#A list of enchantments as written here may be found here:
+#https://hub.spigotmc.org/javadocs/spigot/org/bukkit/enchantments/Enchantment.html
+enchantments:
+  ARROW_DAMAGE:
+    amt: 40
+    enabled: true
+  ARROW_INFINITE:
+    amt: 200
+    enabled: true
+  ARROW_KNOCKBACK:
+    amt: 40
+    enabled: true
+  BINDING_CURSE:
+    amt: 40
+    enabled: true
+  DAMAGE_ALL:
+    amt: 40
+    enabled: true
+  DAMAGE_ARTHROPODS:
+    amt: 40
+    enabled: true
+  DAMAGE_UNDEAD:
+    amt: 40
+    enabled: true
+  DEPTH_STRIDER:
+    amt: 40
+    enabled: true
+  DIG_SPEED:
+    amt: 40
+    enabled: true
+  DURABILITY:
+    amt: 40
+    enabled: true
+  FIRE_ASPECT:
+    amt: 40
+    enabled: true
+  FROST_WALKER:
+    amt: 40
+    enabled: true
+  KNOCKBACK:
+    amt: 40
+    enabled: true
+  LOOT_BONUS_BLOCKS:
+    amt: 40
+    enabled: true
+  LOOT_BONUS_MOBS:
+    amt: 40
+    enabled: true
+  LUCK:
+    amt: 40
+    enabled: true
+  LURE:
+    amt: 40
+    enabled: true
+  MENDING:
+    amt: 40
+    enabled: true
+  OXYGEN:
+    amt: 40
+    enabled: true
+  PROTECTION_ENVIRONMENTAL:
+    amt: 40
+    enabled: true
+  PROTECTION_EXPLOSIONS:
+    amt: 40
+    enabled: true
+  PROTECTION_FALL:
+    amt: 40
+    enabled: true
+  PROTECTION_FIRE:
+    amt: 40
+    enabled: true
+  PROTECTION_PROJECTILE:
+    amt: 40
+    enabled: true
+  SILK_TOUCH:
+    amt: 40
+    enabled: true
+  SWEEPING_EDGE:
+    amt: 40
+    enabled: true
+  THORNS:
+    amt: 40
+    enabled: true
+  VANISHING_CURSE:
+    amt: 40
+    enabled: true
+  WATER_WORKER:
+    amt: 40
+    enabled: true
+
+
