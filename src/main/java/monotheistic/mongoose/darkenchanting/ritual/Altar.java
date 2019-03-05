@@ -3,9 +3,9 @@ package monotheistic.mongoose.darkenchanting.ritual;
 import monotheistic.mongoose.darkenchanting.listeners.Items;
 import monotheistic.mongoose.darkenchanting.utils.Enchantments;
 import monotheistic.mongoose.darkenchanting.utils.NBTUtils;
-import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
@@ -24,29 +24,29 @@ import static org.bukkit.Material.*;
 public class Altar extends SymmetricMultiblock {
 
     public Altar() {
-        super(getAltarLayout(), Material.REDSTONE_BLOCK, Items::isAltarItem, Triple.of(getAltarLayout()[0].length / 2, 0, getAltarLayout()[0][0].length / 2));
+        super(getAltarLayout(), Material.REDSTONE_BLOCK, Items::isAltarItem, new Triple<>(getAltarLayout()[0].length / 2, 0, getAltarLayout()[0][0].length / 2));
         setAction(this::runRitual);
     }
 
     private static Material[][][] getAltarLayout() {
         final Material[][][] arr = new Material[3][5][5];
         set(arr, 0, 0, 1, CHEST);
-        set(arr, 0, 0, 2, SMOOTH_STAIRS);
+        set(arr, 0, 0, 2, STONE_BRICK_STAIRS);
         set(arr, 0, 0, 3, CHEST);
         set(arr, 0, 1, 0, CHEST);
         set(arr, 0, 1, 1, COBBLESTONE);
         set(arr, 0, 1, 3, COBBLESTONE);
         set(arr, 0, 1, 4, CHEST);
-        set(arr, 0, 2, 0, SMOOTH_STAIRS);
+        set(arr, 0, 2, 0, STONE_BRICK_STAIRS);
         set(arr, 0, 2, 2, REDSTONE_BLOCK);
-        set(arr, 0, 2, 4, SMOOTH_STAIRS);
+        set(arr, 0, 2, 4, STONE_BRICK_STAIRS);
         set(arr, 1, 1, 1, COBBLESTONE);
-        set(arr, 1, 1, 2, SMOOTH_STAIRS);
+        set(arr, 1, 1, 2, STONE_BRICK_STAIRS);
         set(arr, 1, 1, 3, COBBLESTONE);
-        set(arr, 1, 2, 1, SMOOTH_STAIRS);
-        set(arr, 1, 2, 3, SMOOTH_STAIRS);
-        set(arr, 2, 1, 1, STEP);
-        set(arr, 2, 1, 3, STEP);
+        set(arr, 1, 2, 1, STONE_BRICK_STAIRS);
+        set(arr, 1, 2, 3, STONE_BRICK_STAIRS);
+        set(arr, 2, 1, 1, STONE_SLAB);
+        set(arr, 2, 1, 3, STONE_SLAB);
         return mirrorX(arr);
 
     }
@@ -132,7 +132,7 @@ public class Altar extends SymmetricMultiblock {
             if (itemInChest == null)
                 continue;
             final Optional<String> enchString = NBTUtils.getString("dark_enchantment", itemInChest);
-            enchString.ifPresent(string -> enchantments.put(chest, Enchantment.getByName(string)));
+            enchString.ifPresent(string -> enchantments.put(chest, Enchantment.getByKey(NamespacedKey.minecraft(string))));
         }
         return enchantments;
     }

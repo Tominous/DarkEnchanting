@@ -2,6 +2,7 @@ name: DarkEnchanting
 author: Yona168
 version: 1.0
 main: monotheistic.mongoose.darkenchanting.Main
-
+depend: ["Yona168-Core"]
+api-version: 1.13
 commands:
   de:

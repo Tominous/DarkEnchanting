@@ -1,42 +1,31 @@
 package monotheistic.mongoose.darkenchanting.utils;
 
-import monotheistic.mongoose.core.utils.ItemBuilder;
-import net.minecraft.server.v1_12_R1.ItemStack;
-import net.minecraft.server.v1_12_R1.NBTTagCompound;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
+import monotheistic.mongoose.core.utils.PluginImpl;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
+import org.bukkit.inventory.meta.tags.ItemTagType;
+import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class NBTUtils {
-    public static org.bukkit.inventory.ItemStack addTag(org.bukkit.inventory.ItemStack itemStack, Map<String, String> nbtTag) {
-        final ItemStack stack = CraftItemStack.asNMSCopy(itemStack);
-        NBTTagCompound compound = stack.getTag() != null ? stack.getTag() : new NBTTagCompound();
-        nbtTag.forEach(compound::setString);
-        stack.setTag(compound);
-        return CraftItemStack.asBukkitCopy(stack);
-    }
+  private static final Plugin NBT_WORKER = new PluginImpl("NBT_WORKER");
 
-    public static org.bukkit.inventory.ItemStack addTag(org.bukkit.inventory.ItemStack itemStack, String key, String value) {
-        final Map<String, String> map = new HashMap<>();
-        map.put(key, value);
-        return addTag(itemStack, map);
-    }
+  public static org.bukkit.inventory.ItemStack addTag(org.bukkit.inventory.ItemStack itemStack, String key, String value) {
+    final ItemMeta itemMeta = itemStack.getItemMeta();
+    final CustomItemTagContainer container = itemMeta.getCustomTagContainer();
+    container.setCustomTag(new NamespacedKey(NBT_WORKER, key), ItemTagType.STRING, value);
+    itemStack.setItemMeta(itemMeta);
+    return itemStack;
+  }
 
-    public static boolean checkIfHasTag(String tag, org.bukkit.inventory.ItemStack item) {
-        final NBTTagCompound nbtTagCompound = CraftItemStack.asNMSCopy(item).getTag();
-        return nbtTagCompound!=null&&nbtTagCompound.hasKey(tag);
-    }
+  public static boolean checkIfHasTag(String tag, org.bukkit.inventory.ItemStack item) {
+    return item.getItemMeta().getCustomTagContainer().hasCustomTag(new NamespacedKey(NBT_WORKER, tag), ItemTagType.STRING);
+  }
 
-    public static Optional<String> getString(String key, org.bukkit.inventory.ItemStack itemStack) {
-        final NBTTagCompound tag = CraftItemStack.asNMSCopy(itemStack).getTag();
-        if (tag != null)
-            return Optional.ofNullable(tag.getString(key));
-        return Optional.empty();
-    }
+  public static Optional<String> getString(String key, org.bukkit.inventory.ItemStack itemStack) {
+    return Optional.ofNullable(itemStack.getItemMeta().getCustomTagContainer().getCustomTag(new NamespacedKey(NBT_WORKER, key), ItemTagType.STRING));
+  }
 
-    public static org.bukkit.inventory.ItemStack addTag(ItemBuilder builder, String key, String value) {
-        return addTag(builder.build(), key, value);
-    }
 }
