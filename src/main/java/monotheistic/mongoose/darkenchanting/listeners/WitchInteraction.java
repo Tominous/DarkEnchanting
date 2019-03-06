@@ -27,6 +27,7 @@ import org.bukkit.inventory.PlayerInventory;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -99,18 +100,24 @@ class WitchInteraction extends Component {
     private ItemStack[] parseValues(Configuration configuration) {
       return configuration.getConfigurationSection("enchantments").getKeys(false).stream()
               .filter(enchString -> configuration.getBoolean("enchantments." + enchString + ".enabled"))
-              .collect(Collectors.toMap(enchSection -> {
+              .collect(Collectors.toMap(
+                      //Key mapper
+                      enchSection -> {
                         Enchantment ench = Enchantment.getByKey(NamespacedKey.minecraft(enchSection));
                         if (ench == null) {
                           throw new IllegalArgumentException("Invalid Enchantment in options.yml! Your enchant: " + enchSection);
                         }
                         return ench;
-                      }
-                      ,
+                      },
+                      //Value mapper
                       enchSection -> configuration.getInt("enchantments." + enchSection + ".amt"))).entrySet()
-              .stream().map((entry) -> NBTUtils.addTag(new ItemBuilder(Material.BOOK)
-                      .name(INFO.getMainColor() + Enchantments.getDisplayName(entry.getKey())).lore(ChatColor.RED + "" + entry.getValue() + " Blood Shards")
-                      .build(), "dark_enchantment", entry.getKey().getKey().getKey())).toArray(ItemStack[]::new);
+              .stream().map((entry) -> {
+                        final ItemStack enchantBook = new ItemBuilder(Material.BOOK)
+                                .name(INFO.getMainColor() + Enchantments.getDisplayName(entry.getKey())).lore(ChatColor.RED + "" + entry.getValue() + " Blood Shards")
+                                .build();
+                        return NBTUtils.setString(enchantBook, "dark_enchantment", entry.getKey().getKey().getKey());
+                      }
+              ).toArray(ItemStack[]::new);
     }
 
     private MyGUI createMainMenu() {
@@ -123,7 +130,7 @@ class WitchInteraction extends Component {
       Items.ALTAR_INTERACT(true).ifPresent(item -> gui.set(3, item, (InventoryClickEvent event) -> {
         int price = price(event.getCurrentItem());
         if (price == -1) return;
-        proccessBloodDropTransaction(event, price, 0);
+        proccessBloodDropTransaction(event, price, true, 0);
       }));
       return gui;
     }
@@ -133,7 +140,7 @@ class WitchInteraction extends Component {
       return MiscUtils.parseInt(priceStr.substring(0, priceStr.indexOf(32))).orElse(-1);
     }
 
-    private void proccessBloodDropTransaction(InventoryClickEvent event, int price, int... linesOfLoreToRemove) {
+    private void proccessBloodDropTransaction(InventoryClickEvent event, int price, boolean unstackableProduct, int... linesOfLoreToRemove) {
       final Player player = (Player) event.getWhoClicked();
       final PlayerInventory inv = player.getInventory();
       if (removeItem(inv, Items.BLOOD_DROPLET(), price)) {
@@ -142,7 +149,11 @@ class WitchInteraction extends Component {
         for (int line : linesOfLoreToRemove) {
           lore.remove(line);
         }
-        addOrDrop(player, ItemBuilder.copyOf(item).lore(lore).build());
+        final ItemStack itemStack = ItemBuilder.copyOf(item).lore(lore).build();
+        if (unstackableProduct) {
+          NBTUtils.setString(itemStack, UUID.randomUUID().toString(), "_");
+        }
+        addOrDrop(player, itemStack);
       }
     }
 
@@ -156,7 +167,7 @@ class WitchInteraction extends Component {
         int price = MiscUtils.parseInt(priceStr.substring(0, priceStr.indexOf(32))).orElse(-1);
         if (price == -1)
           return;
-        proccessBloodDropTransaction(event, price, 0);
+        proccessBloodDropTransaction(event, price, false, 0);
       }, guiBiFunction, BOOK_SHOP_ICONS);
     }
 

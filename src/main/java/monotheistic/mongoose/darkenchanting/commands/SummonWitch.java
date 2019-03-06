@@ -68,7 +68,6 @@ public class SummonWitch extends CommandPart {
     factory.spawn(toSpawn);
     player.playSound(player.getLocation(), Sound.ENTITY_WITCH_DEATH, .5f, .5f);
     return true;
-
   }
 
 

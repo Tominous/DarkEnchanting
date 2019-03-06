@@ -14,6 +14,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -59,7 +60,7 @@
         <dependency>
             <groupId>com.github.Yona168</groupId>
             <artifactId>Core</artifactId>
-            <version>014f42f455</version>
+            <version>62081669cb</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
