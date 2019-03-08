@@ -12,12 +12,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 import static org.bukkit.Material.*;
 
@@ -68,43 +66,46 @@ public class Altar extends SymmetricMultiblock {
     final Player player = event.getPlayer();
     if (!player.hasPermission("de.altar.use") && !player.isOp())
       return;
-    final Location clicked = event.getClickedBlock().getLocation();
-    if (clicked.getWorld().getTime() < 12000)
+    if (event.getClickedBlock().getLocation().getWorld().getTime() < 12000) {
       return;
+    }
+    final Location clicked = event.getClickedBlock().getLocation();
     final Block center = event.getClickedBlock();
     clicked.add(.5, 1, .5);
-    final Optional<Item> toEnchant;
-    if ((toEnchant = (clicked.getWorld().getNearbyEntities(clicked, .5, .5, .5).stream().filter(entity ->
-    {
-      if (!(entity instanceof Item))
-        return false;
-      final ItemStack item = ((Item) entity).getItemStack();
-      return item.getEnchantments().isEmpty() && item.getAmount() == 1 && Enchantments.isEnchantable(item.getType());
-
-    }).map(entity -> (Item) entity).findFirst())).isPresent()) {
-
+    Optional<Item> toEnchant = getItemToEnchant(clicked);
+    if (toEnchant.isPresent()) {
       final Item item = toEnchant.get();
       final ItemStack enchanting = item.getItemStack();
-      final Map<Chest, Enchantment> enchantments = getEnchantmentsInChests(center);
+      final Map<Chest, Enchantment> enchantmentsInChests = getEnchantmentsInChests(center);
+      final Collection<Enchantment> enchantments = enchantmentsInChests.values();
       if (enchantments.isEmpty())
         return;
       final Map<Enchantment, Integer> amounts = new HashMap<>();
-      for (Enchantment enchantment : enchantments.values()) {
+      for (Enchantment enchantment : enchantments) {
         if (!enchantment.canEnchantItem(enchanting))
           return;
         amounts.put(enchantment, amounts.getOrDefault(enchantment, 0) + 1);
       }
-      for (Map.Entry<Enchantment, Integer> entry : amounts.entrySet())
-        if (entry.getValue() > entry.getKey().getMaxLevel())
-          return;
-      enchantments.keySet().forEach(chest -> chest.getBlockInventory().setItem(13, null));
+      final boolean invalidEnchantment = amounts.entrySet().stream()
+              .anyMatch(entry -> entry.getValue() > entry.getKey().getMaxLevel() || entry.getValue() < entry.getKey().getStartLevel());
+      if (invalidEnchantment) {
+        return;
+      }
+      enchantmentsInChests.keySet().forEach(chest -> chest.getBlockInventory().setItem(13, null));
       lightningStrikeRelativeTo(clicked, 6, 2, 2);
       enchanting.addEnchantments(amounts);
       item.setItemStack(enchanting);
-
       player.getInventory().setItemInMainHand(Items.modifyUsagesOfAltarItem(event.getItem()));
     }
 
+  }
+
+  private Optional<Item> getItemToEnchant(Location centerLoc) {
+    return centerLoc.getWorld().getNearbyEntities(centerLoc, .5, .5, .5).stream()
+            .filter(entity -> entity instanceof Item).map(entity -> ((Item) entity)).filter(item -> {
+              final ItemStack enchantingStack = item.getItemStack();
+              return enchantingStack.getEnchantments().isEmpty() && enchantingStack.getAmount() == 1 && Enchantments.isEnchantable(enchantingStack.getType());
+            }).findFirst();
   }
 
   private void lightningStrikeRelativeTo(Location center, int amt, int minOffset, int offsetRange) {
@@ -117,27 +118,37 @@ public class Altar extends SymmetricMultiblock {
   }
 
   private Map<Chest, Enchantment> getEnchantmentsInChests(final Block redstoneCenter) {
-    final Chest[] chests = new Chest[8];
-    chests[0] = getChestRelativeToBlock(redstoneCenter, 2, 0, 1);
-    chests[1] = getChestRelativeToBlock(redstoneCenter, 2, 0, -1);
-    chests[2] = getChestRelativeToBlock(redstoneCenter, -2, 0, 1);
-    chests[3] = getChestRelativeToBlock(redstoneCenter, -2, 0, -1);
-    chests[4] = getChestRelativeToBlock(redstoneCenter, 1, 0, 2);
-    chests[5] = getChestRelativeToBlock(redstoneCenter, 1, 0, -2);
-    chests[6] = getChestRelativeToBlock(redstoneCenter, -1, 0, 2);
-    chests[7] = getChestRelativeToBlock(redstoneCenter, -1, 0, -2);
-    Map<Chest, Enchantment> enchantments = new HashMap<>();
+    final Chest[] chests = new Chest[]{
+            getChestRelativeToBlock(redstoneCenter, 2, 0, 1),
+            getChestRelativeToBlock(redstoneCenter, 2, 0, -1),
+            getChestRelativeToBlock(redstoneCenter, -2, 0, 1),
+            getChestRelativeToBlock(redstoneCenter, -2, 0, -1),
+            getChestRelativeToBlock(redstoneCenter, 1, 0, 2),
+            getChestRelativeToBlock(redstoneCenter, 1, 0, -2),
+            getChestRelativeToBlock(redstoneCenter, -1, 0, 2),
+            getChestRelativeToBlock(redstoneCenter, -1, 0, -2),
+    };
+    final Map<Chest, Enchantment> enchantmentMap = new HashMap<>();
     for (Chest chest : chests) {
-      final ItemStack itemInChest = chest.getBlockInventory().getItem(13);
-      if (itemInChest == null)
+      final Inventory blockInv = chest.getBlockInventory();
+      final ItemStack chestItem;
+      if ((chestItem = blockInv.getItem(13)) == null) {
         continue;
-      final Optional<String> enchString = NBTUtils.getString(itemInChest, "dark_enchantment");
-      enchString.ifPresent(string -> enchantments.put(chest, Enchantment.getByKey(NamespacedKey.minecraft(string))));
+      }
+      NBTUtils.getString(chestItem, "dark_enchantment").ifPresent(str -> {
+        Enchantment ench = Enchantment.getByKey(NamespacedKey.minecraft(str));
+        if (ench != null) {
+          enchantmentMap.put(chest, ench);
+        }
+      });
     }
-    return enchantments;
+    return enchantmentMap;
   }
 
   private Chest getChestRelativeToBlock(final Block block, int offsetx, int offsety, int offsetz) {
     return ((Chest) block.getRelative(offsetx, offsety, offsetz).getState());
   }
+
+
 }
+

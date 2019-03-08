@@ -123,8 +123,9 @@ public class Items extends Component {
     if (--currentUsages <= 0) {
       return null;
     }
-    return new ItemBuilder(altarItem).lore(Info.INFO.getDisplayName() +
+    ItemStack newItem = new ItemBuilder(altarItem).lore(Info.INFO.getDisplayName() +
             "Uses Remaining: " + ChatColor.RESET + ChatColor.BOLD + currentUsages + " of " + maxWandUses).build();
+    return NBTUtils.setInt(newItem, "uses_remaining", currentUsages);
   }
 
 }
